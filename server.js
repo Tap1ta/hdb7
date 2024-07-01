@@ -18,21 +18,21 @@ const io = socketIo(server, {
 
 // Manejar nuevas conexiones de clientes
 io.on('connection', (socket) => {
-    console.log('New client connected');
+    console.log('Nuevo cliente conectado');
 
     // Manejar eventos de mensaje
     socket.on('sendMessage', (message) => {
-        console.log('Message received: ', message);
+        console.log('Mensaje recibido: ', message);
         io.emit('newMessage', message); // Emitir el mensaje a todos los clientes conectados
     });
 
     // Manejar desconexiones de clientes
     socket.on('disconnect', () => {
-        console.log('Client disconnected');
+        console.log('Cliente desconectado');
     });
 });
 
 // Iniciar el servidor y escuchar en el puerto 3000
 server.listen(3000, () => {
-    console.log('Server is running on port 3000');
+    console.log('El servidor está corriendo en el puerto 3000');
 });
