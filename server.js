@@ -1,38 +1,26 @@
 const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
+const dotenv = require('dotenv');
 
-// Crear la aplicación Express
+dotenv.config();
 const app = express();
 
-// Crear el servidor HTTP usando Express
-const server = http.createServer(app);
+const server = require('http').createServer(app);
+const io = require('socket.io')(server);
 
-// Crear la instancia de Socket.IO y configurarla para manejar CORS
-const io = socketIo(server, {
-    cors: {
-        origin: "*", // Permitir todas las solicitudes de origen (ajusta esto según sea necesario)
-        methods: ["GET", "POST"]
-    }
+io.on('connection', client => {
+    console.log(`connection recieved`);
+    client.on('new_message', (chat) => {
+        console.log(`new message recieved: ${chat}`)
+        io.emit('broadcast', chat)
+    })
+})
+
+app.get('/', (req, res) => {
+    res.send('Server is running')
 });
 
-// Manejar nuevas conexiones de clientes
-io.on('connection', (socket) => {
-    console.log('Nuevo cliente conectado');
 
-    // Manejar eventos de mensaje
-    socket.on('sendMessage', (message) => {
-        console.log('Mensaje recibido: ', message);
-        io.emit('newMessage', message); // Emitir el mensaje a todos los clientes conectados
-    });
-
-    // Manejar desconexiones de clientes
-    socket.on('disconnect', () => {
-        console.log('Cliente desconectado');
-    });
-});
-
-// Iniciar el servidor y escuchar en el puerto 3000
-server.listen(3000, () => {
-    console.log('El servidor está corriendo en el puerto 3000');
-});
+const port = process.env.PORT;
+server.listen(port, () => {
+    console.log(`server running at ${port}...`)
+})
