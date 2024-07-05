@@ -4,7 +4,7 @@ const http = require('http');
 const server = http.createServer(app);
 const io = require('socket.io')(server);
 
-const port = process.env.PORT || 3000; // Permite usar el puerto configurado o el 3000 por defecto
+const port = process.env.PORT || 3000;
 
 io.on('connection', client => {
     console.log(`Cliente conectado: ${client.id}`);
