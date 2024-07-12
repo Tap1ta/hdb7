@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArChat</title>
+
+  <!-- Importar Socket.io -->
+  <script type="module" src="https://cdn.socket.io/4.3.2/socket.io.esm.min.js"></script>
+
+  <style>
+    /* Estilos generales */
+    * {
+      box-sizing: border-box;
+
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Estilos del chat */
+    #chat {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      width: 360px;
+    }
+
+    #messages {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      overflow-y: auto;
+      max-height: 300px;
+      padding-bottom: 16px;
+    }
+
+    #messages li {
+      padding: 8px 16px;
+      margin-bottom: 8px;
+      border-radius: 4px;
+    }
+
+    #messages li:nth-child(odd) {
+      background-color: #f0f0f0;
+    }
+
+    #form {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px;
+      background-color: #f0f0f0;
+      border-top: 1px solid #ddd;
+    }
+
+    #input {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-right: 8px;
+    }
+
+    #input:focus {
+      outline: none;
+      border-color: #09f;
+    }
+
+    #form button {
+      padding: 8px 16px;
+      background-color: #09f;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #form button:hover {
+      background-color: #0cf;
+    }
+  </style>
+
+  <script type="module">
+    import { io } from 'https://cdn.socket.io/4.3.2/socket.io.esm.min.js';
+
+    // Obtener nombre de usuario
+    const getUsername = async () => {
+      const username = localStorage.getItem('username');
+      if (username) {
+        console.log(`Usuario existente: ${username}`);
+        return username;
+      }
+
+      const res = await fetch('https://random-data-api.com/api/users/random_user');
+      const { username: randomUsername } = await res.json();
+
+      localStorage.setItem('username', randomUsername);
+      return randomUsername;
+    };
+
+    // Inicializar Socket.io
+    const socket = io({
+      auth: {
+        username: await getUsername(),
+        serverOffset: 0
+      }
+    });
+
+    // Manejar mensajes entrantes
+    socket.on('chat message', (msg, serverOffset, username) => {
+      const item = `
+        <li>
+          <p>${msg}</p>
+          <small>${username}</small>
+        </li>`;
+      messages.insertAdjacentHTML('beforeend', item);
+      socket.auth.serverOffset = serverOffset;
+      messages.scrollTop = messages.scrollHeight; // Scroll automático
+    });
+
+    // Enviar mensaje
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      if (input.value.trim()) {
+        socket.emit('chat message', input.value.trim());
+        input.value = '';
+      }
+    });
+  </script>
+</head>
+
+<body>
+  <section id="chat">
+    <ul id="messages"></ul>
+    <form id="form">
+      <input type="text" id="input" placeholder="Escribe un mensaje..." autocomplete="off" required>
+      <button type="submit">Enviar</button>
+    </form>
+  </section>
+</body>
+
+</html>
