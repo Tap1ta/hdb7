@@ -1,6 +1,6 @@
 // firebaseAdminConfig.js
 import admin from 'firebase-admin';
-import serviceAccount from './path/to/hdb4-88d11-firebase-adminsdk-6eknv-e7f5f1ad39.json"'; // Ruta al archivo JSON de credenciales de servicio
+const serviceAccount = require(path.resolve(__dirname, './credentials/hdb4-88d11-firebase-adminsdk-6eknv-e7f5f1ad39.json'));
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
