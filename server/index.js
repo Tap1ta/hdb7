@@ -4,8 +4,6 @@ import { Server } from 'socket.io';
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, push } from 'firebase/database';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import dotenv from 'dotenv';
 
 const app = express();
@@ -17,9 +15,6 @@ const io = new Server(server, {
     methods: ['GET', 'POST']
   }
 });
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 dotenv.config();
 
@@ -38,11 +33,12 @@ const firebaseApp = initializeApp(firebaseConfig);
 const database = getDatabase(firebaseApp);
 
 // Middleware para servir archivos estáticos
-app.use(express.static(path.join(__dirname, 'client')));
+const staticPath = path.resolve(__dirname, 'client'); // Ajusta según la estructura de tu proyecto
+app.use(express.static(staticPath));
 
 // Ruta principal
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client', 'index.html'));
+  res.sendFile(path.join(staticPath, 'index.html'));
 });
 
 // Escuchar conexiones Socket.io
