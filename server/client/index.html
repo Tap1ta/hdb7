@@ -122,50 +122,58 @@
   <script type="module">
     import { io } from 'https://cdn.socket.io/4.3.2/socket.io.esm.min.js';
 
-    // Obtener nombre de usuario
-    const getUsername = async () => {
-      const username = localStorage.getItem('username');
-      if (username) {
-        console.log(`Usuario existente: ${username}`);
+    document.addEventListener('DOMContentLoaded', async () => {
+      const socket = io('https://culturar.vercel.app', {
+        transport: ['websocket']
+      });
+
+      // Obtener nombre de usuario
+      const getUsername = async () => {
+        let username = localStorage.getItem('username');
+        if (!username) {
+          const res = await fetch('https://random-data-api.com/api/users/random_user');
+          const { username: randomUsername } = await res.json();
+          username = randomUsername;
+          localStorage.setItem('username', username);
+        }
         return username;
-      }
+      };
 
-      const res = await fetch('https://random-data-api.com/api/users/random_user');
-      const { username: randomUsername } = await res.json();
+ // Inicializar Socket.io
+ const username = await getUsername();
 
-      localStorage.setItem('username', randomUsername);
-      return randomUsername;
-    };
+socket.on('connect', () => {
+  console.log('Connected to server');
+});
 
-    // Inicializar Socket.io
-    const socket = io({
-      auth: {
-        username: await getUsername(),
-        serverOffset: 0
-      }
-    });
+socket.on('disconnect', () => {
+  console.log('Disconnected from server');
+});
 
-    // Manejar mensajes entrantes
-    socket.on('chat message', (msg, serverOffset, username) => {
-      const item = `
-        <li>
-          <p>${msg}</p>
-          <small>${username}</small>
-        </li>`;
-      messages.insertAdjacentHTML('beforeend', item);
-      socket.auth.serverOffset = serverOffset;
-      messages.scrollTop = messages.scrollHeight; // Scroll automático
-    });
+      // Manejar mensajes entrantes
+      socket.on('chat message', (msg, serverOffset, senderUsername) => {
+        const messages = document.getElementById('messages');
+        const item = `
+          <li>
+            <p>${msg}</p>
+            <small>${senderUsername}</small>
+          </li>`;
+        messages.insertAdjacentHTML('beforeend', item);
+        messages.scrollTop = messages.scrollHeight; // Scroll automático
+      });
 
     // Enviar mensaje
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
+    const form = document.getElementById('form');
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
 
-      const input = document.getElementById('input');
-      if (input.value.trim()) {
-        socket.emit('chat message', input.value.trim());
-        input.value = '';
-      }
+        const input = document.getElementById('input');
+        const message = input.value.trim();
+        if (message) {
+          socket.emit('chat message', message, Date.now(), username);
+          input.value = '';
+        }
+      });
     });
   </script>
 </head>
