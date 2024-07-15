@@ -13,10 +13,9 @@ const app = express();
 const server = http.createServer(app);
 
 const corsOptions = {
-  origin: 'https://culturar-pnsd3qtu7-esquema-rs-projects.vercel.app',
+  origin: 'https://culturar-git-main-esquema-rs-projects.vercel.app/',
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type'],
-  credentials: true // Habilitar si estás usando cookies o credenciales de sesión
 };
 app.use(cors(corsOptions));
 
