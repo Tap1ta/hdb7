@@ -1,14 +1,15 @@
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps} from 'firebase/app';
 import { getDatabase, ref, push } from 'firebase/database';
 import path from 'path';
 import dotenv from 'dotenv';
 
+dotenv.config();
+
 const app = express();
 const server = http.createServer(app);
-
 const io = new Server(server, {
   cors: {
     origin: 'https://culturar-git-main-esquema-rs-projects.vercel.app/',
@@ -16,7 +17,7 @@ const io = new Server(server, {
   }
 });
 
-dotenv.config();
+
 
 // Configuración de Firebase
 const firebaseConfig = {
@@ -29,7 +30,7 @@ const firebaseConfig = {
   measurementId: "G-FS9VKQ1R2H"
 };
 // Inicializar Firebase
-const firebaseApp = initializeApp(firebaseConfig);
+const firebaseApp = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const database = getDatabase(firebaseApp);
 
 // Middleware para servir archivos estáticos
@@ -54,6 +55,9 @@ io.on('connection', (socket) => {
     console.log({ username, msg });
 
     try {
+      if (!msg || msg.trim() === '') {
+        return;
+      }
       // Añadir mensaje a Firebase Realtime Database
       const messagesRef = ref(database, 'messages');
       const newMessageRef = push(messagesRef);
