@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArChat</title>
+
+  <!-- Importar Socket.io -->
+  <script type="module" src="https://cdn.socket.io/4.3.2/socket.io.esm.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #e1f5fe;
+      background-image: url("https://wallpaper.forfun.com/fetch/f0/f05d29dfeca21a48113a9a7e6001c074.jpeg");
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    /* Estilos del chat */
+    #chat {
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      width: 400px;
+      max-height: 600px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #messages {
+      list-style-type: none;
+      padding: 20px;
+      flex: 1;
+      overflow-y: auto;
+      max-height: 500px;
+    }
+
+    #messages li {
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      background-color: #f1f8e9;
+    }
+
+    #messages li:nth-child(odd) {
+      background-color: #e3f2fd;
+    }
+
+    #messages li p {
+      margin: 0;
+    }
+
+    #messages li small {
+      display: block;
+      text-align: right;
+      color: #90a4ae;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    #form {
+      display: flex;
+      padding: 10px;
+      background-color: #fafafa;
+      border-top: 1px solid #ddd;
+    }
+
+    #input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin-right: 10px;
+    }
+
+    #input:focus {
+      outline: none;
+      border-color: #0288d1;
+    }
+
+    #form button {
+      padding: 10px 20px;
+      background-color: #f26c6d;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #form button:hover {
+      background-color: #f9c879;
+    }
+
+    /* Estilos para barra de desplazamiento */
+    #messages::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #messages::-webkit-scrollbar-thumb {
+      background-color: #0288d1;
+      border-radius: 10px;
+    }
+
+    #messages::-webkit-scrollbar-track {
+      background-color: #f1f8e9;
+    }
+  </style>
+
+  <script type="module">
+    import { io } from 'https://cdn.socket.io/4.3.2/socket.io.esm.min.js';
+
+    // Obtener nombre de usuario
+    const getUsername = async () => {
+      const username = localStorage.getItem('username');
+      if (username) {
+        console.log(`Usuario existente: ${username}`);
+        return username;
+      }
+
+      const res = await fetch('https://random-data-api.com/api/users/random_user');
+      const { username: randomUsername } = await res.json();
+
+      localStorage.setItem('username', randomUsername);
+      return randomUsername;
+    };
+
+    // Inicializar Socket.io
+    const socket = io({
+      auth: {
+        username: await getUsername(),
+        serverOffset: 0
+      }
+    });
+
+    // Manejar mensajes entrantes
+    socket.on('chat message', (msg, serverOffset, username) => {
+      const item = `
+        <li>
+          <p>${msg}</p>
+          <small>${username}</small>
+        </li>`;
+      messages.insertAdjacentHTML('beforeend', item);
+      socket.auth.serverOffset = serverOffset;
+      messages.scrollTop = messages.scrollHeight; // Scroll automático
+    });
+
+    // Enviar mensaje
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      if (input.value.trim()) {
+        socket.emit('chat message', input.value.trim());
+        input.value = '';
+      }
+    });
+  </script>
+</head>
+
+<body>
+  <section id="chat">
+    <ul id="messages"></ul>
+    <form id="form">
+      <input type="text" id="input" placeholder="Escribe un mensaje..." autocomplete="off" required>
+      <button type="submit">Enviar</button>
+    </form>
+  </section>
+</body>
+
+</html>
