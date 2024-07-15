@@ -33,7 +33,7 @@ const firebaseApp = initializeApp(firebaseConfig);
 const database = getDatabase(firebaseApp);
 
 // Middleware para servir archivos estáticos
-const staticPath = path.resolve(__dirname, 'client'); // Ajusta según la estructura de tu proyecto
+const staticPath = path.resolve('./server/client'); // Ajusta según la estructura de tu proyecto
 app.use(express.static(staticPath));
 
 // Ruta principal
