@@ -12,7 +12,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: 'https://culturar-git-main-esquema-rs-projects.vercel.app/',
+    origin: 'https://culturar.vercel.app/',
     methods: ['GET', 'POST']
   }
 });
