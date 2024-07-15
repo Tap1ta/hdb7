@@ -1,18 +1,24 @@
-import express from 'express';
-import logger from 'morgan';
-import dotenv from 'dotenv';
-import { Server } from 'socket.io';
-import { createServer } from 'http';
-import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, push } from 'firebase/database';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+const express = require('express');
+const { Server } = require('socket.io');
+const http = require('http');
+const { initializeApp } = require('firebase/app');
+const { getDatabase, ref, push } = require('firebase/database');
+const path = require('path');
+const { fileURLToPath } = require('url');
+const { dirname } = require('path');
+const dotenv = require('dotenv');
+const app = express();
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: 'https://culturar.vercel.app',
+    methods: ['GET', 'POST']
+  }
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-console.log(__dirname); // Now you can use __dirname in your ES module
 
 dotenv.config();
 
@@ -26,20 +32,9 @@ const firebaseConfig = {
   appId: "1:829021793366:web:60dc8ecf1a5a862e4d9ff7",
   measurementId: "G-FS9VKQ1R2H"
 };
-
-
 // Inicializar Firebase
 const firebaseApp = initializeApp(firebaseConfig);
 const database = getDatabase(firebaseApp);
-
-// Configuración de Express y Socket.io
-const app = express();
-const server = createServer(app);
-const io = new Server(server);
-const port = process.env.PORT || 3000;
-
-// Middleware de logging
-app.use(logger('dev'));
 
 // Middleware para servir archivos estáticos
 app.use(express.static(path.join(__dirname, 'client')));
@@ -79,6 +74,7 @@ io.on('connection', (socket) => {
 });
 
 // Iniciar servidor
+const port = process.env.PORT || 3000;
 server.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
