@@ -1,82 +1,78 @@
-import express from 'express'
-import logger from 'morgan'
-import dotenv from 'dotenv'
-import mysql from 'mysql2/promise';
+import express from 'express';
+import logger from 'morgan';
+import dotenv from 'dotenv';
+import { Server } from 'socket.io';
+import { createServer } from 'http';
+import { initializeApp } from 'firebase/app';
+import { getDatabase, ref, push } from 'firebase/database';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-import { Server } from 'socket.io'
-import { createServer } from 'node:http'
+dotenv.config();
 
-dotenv.config()
+// Configuración de Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyDDjI7yScWWii4x3kptJfG23jfyyRR-45k",
+  authDomain: "hdb4-88d11.firebaseapp.com",
+  projectId: "hdb4-88d11",
+  storageBucket: "hdb4-88d11.appspot.com",
+  messagingSenderId: "829021793366",
+  appId: "1:829021793366:web:60dc8ecf1a5a862e4d9ff7",
+  measurementId: "G-FS9VKQ1R2H"
+};
 
-const port = process.env.PORT ?? 3000
 
-const app = express()
-const server = createServer(app)
-const io = new Server(server, {
-  connectionStateRecovery: {}
-})
+// Inicializar Firebase
+const firebaseApp = initializeApp(firebaseConfig);
+const database = getDatabase(firebaseApp);
 
-const db = await mysql.createConnection({
-  host: '34.176.104.173',
-  user: 'tapita',
-  password: 'confe',
-  database: 'archatdb'
+// Configuración de Express y Socket.io
+const app = express();
+const server = createServer(app);
+const io = new Server(server);
+const port = process.env.PORT || 3000;
+
+// Middleware de logging
+app.use(logger('dev'));
+
+// Middleware para servir archivos estáticos
+app.use(express.static(path.join(__dirname, 'client')));
+
+// Ruta principal
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client', 'index.html'));
 });
 
-await db.execute(`
-  CREATE TABLE IF NOT EXISTS messages (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    content TEXT,
-    user TEXT
-  )
-`)
-
-io.on('connection', async (socket) => {
-  console.log('a user has connected!')
+// Escuchar conexiones Socket.io
+io.on('connection', (socket) => {
+  console.log('a user has connected!');
 
   socket.on('disconnect', () => {
-    console.log('an user has disconnected')
-  })
+    console.log('a user has disconnected');
+  });
 
   socket.on('chat message', async (msg) => {
-    let result
-    const username = socket.handshake.auth.username ?? 'anonymous'
-    console.log({ username })
+    const username = socket.handshake.auth.username || 'anonymous';
+    console.log({ username, msg });
+
     try {
-      result = await db.execute({
-        sql: 'INSERT INTO messages (content, user) VALUES (:msg, :username)',
-        args: { msg, username }
-      })
-    } catch (e) {
-      console.error(e)
-      return
+      // Añadir mensaje a Firebase Realtime Database
+      const messagesRef = ref(database, 'messages');
+      const newMessageRef = push(messagesRef);
+      await newMessageRef.set({
+        content: msg,
+        user: username,
+        timestamp: Date.now()
+      });
+
+      io.emit('chat message', msg, username); // Emitir mensaje a todos los clientes
+    } catch (error) {
+      console.error('Error writing message to Firebase:', error);
     }
+  });
+});
 
-    io.emit('chat message', msg, result.lastInsertRowid.toString(), username)
-  })
-
-  if (!socket.recovered) { // <- recuperase los mensajes sin conexión
-    try {
-      const results = await db.execute({
-        sql: 'SELECT id, content, user FROM messages WHERE id > ?',
-        args: [socket.handshake.auth.serverOffset ?? 0]
-      })
-
-      results.rows.forEach(row => {
-        socket.emit('chat message', row.content, row.id.toString(), row.user)
-      })
-    } catch (e) {
-      console.error(e)
-    }
-  }
-})
-
-app.use(logger('dev'))
-
-app.get('/', (req, res) => {
-  res.sendFile(process.cwd() + '/client/index.html')
-})
-
+// Iniciar servidor
 server.listen(port, () => {
-  console.log(`Server running on port ${port}`)
-})
+  console.log(`Server running on port ${port}`);
+});
