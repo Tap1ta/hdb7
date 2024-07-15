@@ -1,12 +1,13 @@
-const express = require('express');
-const { Server } = require('socket.io');
-const http = require('http');
-const { initializeApp } = require('firebase/app');
-const { getDatabase, ref, push } = require('firebase/database');
-const path = require('path');
-const { fileURLToPath } = require('url');
-const { dirname } = require('path');
-const dotenv = require('dotenv');
+import express from 'express';
+import http from 'http';
+import { Server } from 'socket.io';
+import { initializeApp } from 'firebase/app';
+import { getDatabase, ref, push } from 'firebase/database';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import dotenv from 'dotenv';
+
 const app = express();
 const server = http.createServer(app);
 
