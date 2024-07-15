@@ -1,6 +1,7 @@
 import express from 'express';
+import cors from 'cors';
 import http from 'http';
-import { Server } from 'socket.io';
+import { Server as SocketServer} from 'socket.io';
 import { initializeApp, getApps} from 'firebase/app';
 import { getDatabase, ref, push } from 'firebase/database';
 import path from 'path';
@@ -10,13 +11,18 @@ dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: 'https://culturar-git-main-esquema-rs-projects.vercel.app',
-    methods: ['GET', 'POST']
-  }
-});
 
+const corsOptions = {
+  origin: 'https://culturar-pnsd3qtu7-esquema-rs-projects.vercel.app',
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type'],
+  credentials: true // Habilitar si estás usando cookies o credenciales de sesión
+};
+app.use(cors(corsOptions));
+
+const io = new SocketServer(server,{
+  cors: corsOptions
+});
 
 
 // Configuración de Firebase
@@ -44,10 +50,10 @@ app.get('/', (req, res) => {
 
 // Escuchar conexiones Socket.io
 io.on('connection', (socket) => {
-  console.log('a user has connected!');
+  console.log('Nuevo usuario conectado: ${socket.id}');
 
   socket.on('disconnect', () => {
-    console.log('a user has disconnected');
+    console.log('Usuario desconectado: ${socket.id}');
   });
 
   socket.on('chat message', async (msg) => {
