@@ -161,6 +161,7 @@
     form.addEventListener('submit', (e) => {
       e.preventDefault();
 
+      const input = document.getElementById('input');
       if (input.value.trim()) {
         socket.emit('chat message', input.value.trim());
         input.value = '';
