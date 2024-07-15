@@ -11,7 +11,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: 'https://culturar.vercel.app',
+    origin: 'https://culturar-git-main-esquema-rs-projects.vercel.app/',
     methods: ['GET', 'POST']
   }
 });
