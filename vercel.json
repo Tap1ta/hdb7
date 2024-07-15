@@ -16,7 +16,7 @@
     }
   ],
   "env": {
-    "PORT": 3000,
+    "PORT": "3000",
     "FIREBASE_API_KEY": "AIzaSyDDjI7yScWWii4x3kptJfG23jfyyRR-45k",
     "FIREBASE_AUTH_DOMAIN": "hdb4-88d11.firebaseapp.com",
     "FIREBASE_PROJECT_ID": "hdb4-88d11",
